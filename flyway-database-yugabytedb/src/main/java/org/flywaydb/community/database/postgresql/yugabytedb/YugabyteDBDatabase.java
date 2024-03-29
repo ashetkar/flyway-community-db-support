@@ -30,7 +30,7 @@ import java.sql.SQLException;
 @CustomLog
 public class YugabyteDBDatabase extends PostgreSQLDatabase {
 
-    public static final String LOCK_TABLE_NAME = "PG_ADVISORY_LOCK_ALTERNATIVE";
+    public static final String LOCK_TABLE_NAME = "YB_FLYWAY_LOCK_TABLE";
     public YugabyteDBDatabase(Configuration configuration, JdbcConnectionFactory jdbcConnectionFactory, StatementInterceptor statementInterceptor) {
         super(configuration, jdbcConnectionFactory, statementInterceptor);
         init();
