@@ -18,31 +18,26 @@ package org.flywaydb.community.database.postgresql.yugabytedb;
 import lombok.CustomLog;
 import org.flywaydb.core.api.configuration.Configuration;
 import org.flywaydb.core.internal.database.base.Table;
+import org.flywaydb.core.internal.exception.FlywaySqlException;
 import org.flywaydb.core.internal.jdbc.JdbcConnectionFactory;
 import org.flywaydb.core.internal.jdbc.StatementInterceptor;
 import org.flywaydb.database.postgresql.PostgreSQLDatabase;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 
 @CustomLog
 public class YugabyteDBDatabase extends PostgreSQLDatabase {
 
+    public static final String LOCK_TABLE_NAME = "PG_ADVISORY_LOCK_ALTERNATIVE";
     public YugabyteDBDatabase(Configuration configuration, JdbcConnectionFactory jdbcConnectionFactory, StatementInterceptor statementInterceptor) {
         super(configuration, jdbcConnectionFactory, statementInterceptor);
+        init();
     }
 
     @Override
     protected YugabyteDBConnection doGetConnection(Connection connection) {
-        Statement stmt = null;
-        try {
-            stmt = connection.createStatement();
-            stmt.execute("set yb_silence_advisory_locks_not_supported_error=on;");
-        } catch (SQLException throwable) {
-            LOG.error("Unable to set yb_silence_advisory_locks_not_supported_error ", throwable);
-        }
         return new YugabyteDBConnection(this, connection);
     }
 
@@ -75,4 +70,11 @@ public class YugabyteDBDatabase extends PostgreSQLDatabase {
                 "CREATE INDEX IF NOT EXISTS \"" + table.getName() + "_s_idx\" ON " + table + " (\"success\");";
     }
 
+    private void init() {
+        try {
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS " + LOCK_TABLE_NAME + " (table_hash int PRIMARY KEY, locked bool, last_updated timestamp);");
+        } catch (SQLException e) {
+            throw new FlywaySqlException("Unable to initialize the lock table", e);
+        }
+    }
 }
