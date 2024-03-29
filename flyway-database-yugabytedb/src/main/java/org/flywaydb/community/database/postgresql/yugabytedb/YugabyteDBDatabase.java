@@ -70,6 +70,11 @@ public class YugabyteDBDatabase extends PostgreSQLDatabase {
                 "CREATE INDEX IF NOT EXISTS \"" + table.getName() + "_s_idx\" ON " + table + " (\"success\");";
     }
 
+    @Override
+    public boolean useSingleConnection() {
+        return false;
+    }
+
     private void init() {
         try {
             jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS " + LOCK_TABLE_NAME + " (table_hash int PRIMARY KEY, locked bool, last_updated timestamp);");

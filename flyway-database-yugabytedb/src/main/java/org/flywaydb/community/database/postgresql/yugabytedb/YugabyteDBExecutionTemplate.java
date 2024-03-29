@@ -5,7 +5,6 @@ import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.configuration.Configuration;
 import org.flywaydb.core.internal.exception.FlywaySqlException;
 import org.flywaydb.core.internal.jdbc.JdbcTemplate;
-import org.postgresql.util.PSQLState;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -49,7 +48,8 @@ public class YugabyteDBExecutionTemplate {
                     jdbcTemplate.execute("INSERT INTO " + YugabyteDBDatabase.LOCK_TABLE_NAME + " VALUES (" + tableHash + ", 'false', NOW());");
                     tableEntries.put(tableHash, true);
                 } catch (SQLException e) {
-                    if (PSQLState.UNIQUE_VIOLATION.getState().equals(e.getSQLState())) {
+                    if ("23505".equals(e.getSQLState())) {
+                        // 23505 == UNIQUE_VIOLATION
                         LOG.debug("Table entry already added");
                     } else {
                         throw new FlywaySqlException("Could not initialize lock for table " + YugabyteDBDatabase.LOCK_TABLE_NAME, e);
