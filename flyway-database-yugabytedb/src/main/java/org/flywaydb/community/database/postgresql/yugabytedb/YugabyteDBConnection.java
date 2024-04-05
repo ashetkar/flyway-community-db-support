@@ -34,6 +34,6 @@ public class YugabyteDBConnection extends PostgreSQLConnection {
 
     @Override
     public <T> T lock(Table table, Callable<T> callable) {
-        return new YugabyteDBExecutionTemplate(database.getConfiguration(), jdbcTemplate, table.toString().hashCode()).execute(callable);
+        return new YugabyteDBExecutionTemplate(database.getConfiguration(), jdbcTemplate, table.toString()).execute(callable);
     }
 }

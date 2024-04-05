@@ -15,14 +15,14 @@ public class YugabyteDBExecutionTemplate {
 
     private final Configuration configuration;
     private final JdbcTemplate jdbcTemplate;
-    private final long tableHash;
-    private final HashMap<Long, Boolean> tableEntries = new HashMap<>();
+    private final String tableName;
+    private final HashMap<String, Boolean> tableEntries = new HashMap<>();
 
 
-    YugabyteDBExecutionTemplate(Configuration configuration, JdbcTemplate jdbcTemplate, int hash) {
+    YugabyteDBExecutionTemplate(Configuration configuration, JdbcTemplate jdbcTemplate, String tableName) {
         this.configuration = configuration;
         this.jdbcTemplate = jdbcTemplate;
-        this.tableHash = hash;
+        this.tableName = tableName;
     }
 
     public <T> T execute(Callable<T> callable) {
@@ -43,10 +43,10 @@ public class YugabyteDBExecutionTemplate {
 
     private void lock() throws SQLException {
         try {
-            if (!tableEntries.containsKey(tableHash)) {
+            if (!tableEntries.containsKey(tableName)) {
                 try {
-                    jdbcTemplate.execute("INSERT INTO " + YugabyteDBDatabase.LOCK_TABLE_NAME + " VALUES (" + tableHash + ", 'false', NOW());");
-                    tableEntries.put(tableHash, true);
+                    jdbcTemplate.execute("INSERT INTO " + YugabyteDBDatabase.LOCK_TABLE_NAME + " VALUES ('" + tableName + "', 'false', NOW());");
+                    tableEntries.put(tableName, true);
                 } catch (SQLException e) {
                     if ("23505".equals(e.getSQLState())) {
                         // 23505 == UNIQUE_VIOLATION
@@ -58,7 +58,7 @@ public class YugabyteDBExecutionTemplate {
             }
 
             jdbcTemplate.execute("BEGIN;");
-            jdbcTemplate.queryForBoolean("SELECT locked FROM " + YugabyteDBDatabase.LOCK_TABLE_NAME + " WHERE  table_hash = " + tableHash + " FOR UPDATE;");
+            jdbcTemplate.queryForBoolean("SELECT locked FROM " + YugabyteDBDatabase.LOCK_TABLE_NAME + " WHERE  table_name = '" + tableName + "' FOR UPDATE;");
         } catch (SQLException e) {
             throw new FlywaySqlException("Trying to acquire lock failed", e);
         }

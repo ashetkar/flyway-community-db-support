@@ -77,7 +77,7 @@ public class YugabyteDBDatabase extends PostgreSQLDatabase {
 
     private void init() {
         try {
-            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS " + LOCK_TABLE_NAME + " (table_hash int PRIMARY KEY, locked bool, last_updated timestamp);");
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS " + LOCK_TABLE_NAME + " (table_name varchar PRIMARY KEY, locked bool, last_updated timestamp);");
         } catch (SQLException e) {
             throw new FlywaySqlException("Unable to initialize the lock table", e);
         }
