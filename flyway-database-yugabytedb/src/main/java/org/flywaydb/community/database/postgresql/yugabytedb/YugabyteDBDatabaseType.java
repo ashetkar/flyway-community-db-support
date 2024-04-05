@@ -67,4 +67,9 @@ public class YugabyteDBDatabaseType extends PostgreSQLDatabaseType implements Co
     public String getPluginVersion(Configuration config) {
         return YugabyteDBDatabaseExtension.readVersion();
     }
+
+    @Override
+    public String getDriverClass(String url, ClassLoader classLoader) {
+        return url.startsWith("jdbc:yugabytedb:") ? "com.yugabyte.Driver" : super.getDriverClass(url, classLoader);
+    }
 }
